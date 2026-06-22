@@ -9,17 +9,11 @@ def main():
     # spotify=authenticate_spotify()
     # playlists=get_playlists(spotify)
     # user_id=get_user_id(spotify)
-
     # tracks_list=get_tracks(spotify, '0UuAzJcX1PDq5BZtnnJgqg')
 
-    # i = 1
-    # for result in tracks_list:
-    #     for track in result['items']:
-    #         print(f'{i}. {track['item']['name']} by {track['item']['artists'][0]['name']}')
-    #         i += 1
-    # print(spotify.playlist_items('0UuAzJcX1PDq5BZtnnJgqg', limit=10, offset=0))
     youtube = authenticate_yt()
-    # print(json.dumps(search_youtube(youtube, 'Girls'), indent=2))
+    yt_results=search_youtube(youtube, 'Girls')
+    print(json.dumps(yt_results, indent=2))
 
 
 def authenticate_spotify():
@@ -65,6 +59,10 @@ def get_tracks(authenticated_spotify, playlist_id):
 def authenticate_yt():
     youtube = ytmusicapi.YTMusic("browser.json")
     return youtube
+
+
+def create_playlist(authenticated_yt):
+    authenticated_yt.create_playlist('zzz__TestPLaylist__delete_later', 'Test playlist, delete later.')
 
 
 def search_youtube(authenticated_yt, track):
