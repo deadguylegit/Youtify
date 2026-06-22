@@ -59,5 +59,9 @@ def get_tracks(authenticated_spotify, playlist_id):
     return tracks
 
 
+def authenticate_yt():
+    
+
+
 if __name__ == "__main__":
     main()
