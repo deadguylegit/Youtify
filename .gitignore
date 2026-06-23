@@ -150,6 +150,7 @@ activemq-data/
 # Environments
 client.env
 browser.json
+youtify.code-workspace
 .envrc
 .venv
 env/
