@@ -14,10 +14,16 @@ def main():
     # print(json.dumps(tracks_list, indent=2))
 
     youtube = authenticate_yt()
-    yt_results=search_youtube(youtube, 'Junoon')
-    list=[]
+    yt_results = search_youtube(youtube, "Junoon")
+    list = []
     for result in yt_results:
-        list.append({'track_name': result['title'], 'artist_name': result['artists'][0], 'duration (s)': result['duration_seconds']})
+        list.append(
+            {
+                "track_name": result["title"],
+                "artist_name": result["artists"][0],
+                "duration (s)": result["duration_seconds"],
+            }
+        )
     # print(json.dumps(yt_results, indent=2))
     print(list)
 
@@ -49,17 +55,17 @@ def get_user_id(authenticated_spotify):
 
 
 def get_tracks(authenticated_spotify, playlist_id):
-    tracks=[]
-    offset=0
+    tracks = []
+    offset = 0
     while True:
-        json_page=authenticated_spotify.playlist_items(playlist_id, limit=100, offset=offset)
-        # for result in json_page:
-        #     tracks.append(result)
-        tracks.append(json_page.get('items', []))
-        if json_page['next']==None or json_page['next']=='null':
+        json_page = authenticated_spotify.playlist_items(
+            playlist_id, limit=100, offset=offset
+        )
+        tracks.append(json_page.get("items", []))
+        if json_page["next"] == None or json_page["next"] == "null":
             break
-        offset += 10
-    
+        offset += 100
+
     return tracks
 
 
@@ -69,24 +75,26 @@ def authenticate_yt():
 
 
 def create_playlist(authenticated_yt):
-    authenticated_yt.create_playlist('zzz__TestPLaylist__delete_later', 'Test playlist, delete later.')
+    authenticated_yt.create_playlist(
+        "zzz__TestPLaylist__delete_later", "Test playlist, delete later."
+    )
 
 
 def search_youtube(authenticated_yt, track):
-    results = authenticated_yt.search(track, filter='songs')
+    results = authenticated_yt.search(track, filter="songs")
     return results
 
 
 def clear_track_name(name: str):
     name.strip()
 
-    junk_pattern=r'\(.*?\)|\[.*?\]'
-    name=re.sub(junk_pattern, '', name)
+    junk_pattern = r"\(.*?\)|\[.*?\]"
+    name = re.sub(junk_pattern, "", name)
 
-    junk_words = ['official', 'video', 'audio', 'lyric', 'lyrics', 'hd', '4k', 'mv']
+    junk_words = ["official", "video", "audio", "lyric", "lyrics", "hd", "4k", "mv"]
     for junk_word in junk_words:
-        name.replace(junk_word, '')
-    
+        name.replace(junk_word, "")
+
     return name
 
 
