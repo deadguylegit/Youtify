@@ -6,14 +6,15 @@ from spotipy.oauth2 import SpotifyOAuth
 
 
 def main():
-    # spotify=authenticate_spotify()
+    spotify=authenticate_spotify()
     # playlists=get_playlists(spotify)
     # user_id=get_user_id(spotify)
-    # tracks_list=get_tracks(spotify, '0UuAzJcX1PDq5BZtnnJgqg')
+    tracks_list=get_tracks(spotify, '0UuAzJcX1PDq5BZtnnJgqg')
+    print(json.dumps(tracks_list, indent=2))
 
-    youtube = authenticate_yt()
-    yt_results=search_youtube(youtube, 'Girls')
-    print(json.dumps(yt_results, indent=2))
+    # youtube = authenticate_yt()
+    # yt_results=search_youtube(youtube, 'Girls')
+    # print(json.dumps(yt_results, indent=2))
 
 
 def authenticate_spotify():
@@ -43,17 +44,18 @@ def get_user_id(authenticated_spotify):
 
 
 def get_tracks(authenticated_spotify, playlist_id):
-    # tracks=[]
-    # offset=0
-    # while True:
-    #     json_page=authenticated_spotify.playlist_items(playlist_id, limit=100, offset=offset)
-    #     for result in json_page:
-
-    #     if result['next']==None or result['next']=='null':
-    #         break
-    #     offset += 100
-    # return tracks
-    ...
+    tracks=[]
+    offset=0
+    while True:
+        json_page=authenticated_spotify.playlist_items(playlist_id, limit=100, offset=offset)
+        # for result in json_page:
+        #     tracks.append(result)
+        tracks.append(json_page.get('items', []))
+        if json_page['next']==None or json_page['next']=='null':
+            break
+        offset += 10
+    
+    return tracks
 
 
 def authenticate_yt():
@@ -66,7 +68,7 @@ def create_playlist(authenticated_yt):
 
 
 def search_youtube(authenticated_yt, track):
-    results = authenticated_yt.search(track)
+    results = authenticated_yt.search(track, filter='songs')
     return results
 
 
