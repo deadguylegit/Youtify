@@ -1,20 +1,25 @@
 import spotipy
 import json
+import re
 import ytmusicapi
 from dotenv import dotenv_values
 from spotipy.oauth2 import SpotifyOAuth
 
 
 def main():
-    spotify=authenticate_spotify()
+    # spotify=authenticate_spotify()
     # playlists=get_playlists(spotify)
     # user_id=get_user_id(spotify)
-    tracks_list=get_tracks(spotify, '0UuAzJcX1PDq5BZtnnJgqg')
-    print(json.dumps(tracks_list, indent=2))
+    # tracks_list=get_tracks(spotify, '0UuAzJcX1PDq5BZtnnJgqg')
+    # print(json.dumps(tracks_list, indent=2))
 
-    # youtube = authenticate_yt()
-    # yt_results=search_youtube(youtube, 'Girls')
+    youtube = authenticate_yt()
+    yt_results=search_youtube(youtube, 'Junoon')
+    list=[]
+    for result in yt_results:
+        list.append({'track_name': result['title'], 'artist_name': result['artists'][0], 'duration (s)': result['duration_seconds']})
     # print(json.dumps(yt_results, indent=2))
+    print(list)
 
 
 def authenticate_spotify():
@@ -70,6 +75,19 @@ def create_playlist(authenticated_yt):
 def search_youtube(authenticated_yt, track):
     results = authenticated_yt.search(track, filter='songs')
     return results
+
+
+def clear_track_name(name: str):
+    name.strip()
+
+    junk_pattern=r'\(.*?\)|\[.*?\]'
+    name=re.sub(junk_pattern, '', name)
+
+    junk_words = ['official', 'video', 'audio', 'lyric', 'lyrics', 'hd', '4k', 'mv']
+    for junk_word in junk_words:
+        name.replace(junk_word, '')
+    
+    return name
 
 
 if __name__ == "__main__":
