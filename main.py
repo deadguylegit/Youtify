@@ -29,7 +29,7 @@ def main():
     print(json.dumps(list, indent=2))
 
 
-def authenticate_spotify():
+def authenticate_spotify() -> spotipy.Spotify:
     config = dotenv_values(r"D:\code\py\Youtify\client.env")
     scope = "playlist-read-private"
     auth_spotify = spotipy.Spotify(
@@ -45,17 +45,17 @@ def authenticate_spotify():
     return auth_spotify
 
 
-def get_playlists(authenticated_spotify):
+def get_playlists(authenticated_spotify) -> dict:
     playlists = authenticated_spotify.current_user_playlists()
     return playlists
 
 
-def get_user_id(authenticated_spotify):
+def get_user_id(authenticated_spotify) -> str:
     user_id = authenticated_spotify.current_user()["id"]
     return user_id
 
 
-def get_tracks(authenticated_spotify, playlist_id):
+def get_tracks(authenticated_spotify, playlist_id) -> list:
     tracks = []
     offset = 0
     while True:
@@ -70,7 +70,7 @@ def get_tracks(authenticated_spotify, playlist_id):
     return tracks
 
 
-def authenticate_yt():
+def authenticate_yt() -> ytmusicapi.YTMusic:
     youtube = ytmusicapi.YTMusic("browser.json")
     return youtube
 
@@ -81,12 +81,12 @@ def create_playlist(authenticated_yt):
     )
 
 
-def search_youtube(authenticated_yt, track):
+def search_youtube(authenticated_yt, track) -> list:
     results = authenticated_yt.search(track, filter="songs")
     return results
 
 
-def clear_track_name(name: str):
+def clear_track_name(name: str) -> str:
 
     name.strip()
     tags = r"\(.*?remix.*?\)|\(.*?lo-?fi.*?\)|\(.*?acoustic.*?\)|\(.*?radio\s+edit.*?\)|\(.*?version.*?\)|\(.*?live.*?\)|\(.*?remaster.*?\)|\(.*?extended.*?\)|\(.*?sped\s+up.*?\)|\(.*?slowed.*?\)|\(.*?reverb.*?\)"
@@ -110,7 +110,7 @@ def score(source_track: dict, target_track: list):
         title_score: int = fuzz.token_sort_ratio(source_name, track["track_name"])
         artist_score: int = fuzz.token_sort_ratio(source_artist, track["artist_name"])
         duration_score: int = fuzz.token_sort_ratio(source_duration, track["duration"])
-        yield (title_score * 0.35 + artist_score * 0.5 + duration_score * 0.15)
+        yield (source_track, (title_score * 0.35 + artist_score * 0.5 + duration_score * 0.15), track)
 
 
 if __name__ == "__main__":
