@@ -89,7 +89,8 @@ def search_youtube(authenticated_yt, track):
 def clear_track_name(name: str):
 
     name.strip()
-    if not (re.match(r'\(.*?remix.*?\)', name)):
+    tags=r'\(.*?remix.*?\)|\(.*?lo-?fi.*?\)|\(.*?acoustic.*?\)|\(.*?radio\s+edit.*?\)|\(.*?version.*?\)|\(.*?live.*?\)|\(.*?remaster.*?\)|\(.*?extended.*?\)|\(.*?sped\s+up.*?\)|\(.*?slowed.*?\)|\(.*?reverb.*?\)'
+    if re.search(tags, name):
         junk_pattern = r"\(.*?\)|\[.*?\]"
         name = re.sub(junk_pattern, "", name)
     junk_words = ["official", "video", "audio", "lyric", "lyrics", "hd", "4k", "mv"]
