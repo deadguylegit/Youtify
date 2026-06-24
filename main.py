@@ -89,8 +89,9 @@ def search_youtube(authenticated_yt, track):
 def clear_track_name(name: str):
 
     name.strip()
-    junk_pattern = r"\(.*?\)|\[.*?\]"
-    name = re.sub(junk_pattern, "", name)
+    if not (re.match(r'\(.*?remix.*?\)', name)):
+        junk_pattern = r"\(.*?\)|\[.*?\]"
+        name = re.sub(junk_pattern, "", name)
     junk_words = ["official", "video", "audio", "lyric", "lyrics", "hd", "4k", "mv"]
     for junk_word in junk_words:
         name.replace(junk_word, "")
