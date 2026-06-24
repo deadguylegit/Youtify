@@ -85,6 +85,7 @@ def search_youtube(authenticated_yt, track):
     results = authenticated_yt.search(track, filter="songs")
     return results
 
+
 def clear_track_name(name: str):
 
     name.strip()
@@ -97,15 +98,17 @@ def clear_track_name(name: str):
 
 
 def score(source_track: dict, target_track: list):
-    source_name, source_artist, source_duration = source_track['track_name'], source_track['artist_name'], source_track['duration']
+    source_name, source_artist, source_duration = (
+        source_track["track_name"],
+        source_track["artist_name"],
+        source_track["duration"],
+    )
     # source_name, source_artist, source_duration = source_track['track_name'], source_track['artist_name'], source_track['duration']
     for track in target_track:
-        title_score: int = fuzz.token_sort_ratio(source_name, track['track_name'])
-        artist_score: int = fuzz.token_sort_ratio(source_artist, track['artist_name'])
-        duration_score: int = fuzz.token_sort_ratio(source_duration, track['duration'])
-        yield (title_score*0.35+artist_score*0.5+duration_score*0.15)
-
-
+        title_score: int = fuzz.token_sort_ratio(source_name, track["track_name"])
+        artist_score: int = fuzz.token_sort_ratio(source_artist, track["artist_name"])
+        duration_score: int = fuzz.token_sort_ratio(source_duration, track["duration"])
+        yield (title_score * 0.35 + artist_score * 0.5 + duration_score * 0.15)
 
 
 if __name__ == "__main__":
