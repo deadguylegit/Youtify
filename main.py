@@ -15,16 +15,7 @@ def main():
     # print(json.dumps(tracks_list, indent=2))
 
     youtube = authenticate_yt()
-    yt_results = search_youtube(youtube, "Junoon")
-    list = []
-    for result in yt_results:
-        list.append(
-            {
-                "track_name": result["title"],
-                "artist_name": result["artists"][0],
-                "duration (s)": result["duration_seconds"],
-            }
-        )
+    
     # print(json.dumps(yt_results, indent=2))
     print(json.dumps(list, indent=2))
 
@@ -81,13 +72,24 @@ def create_playlist(authenticated_yt):
     )
 
 
-def search_youtube(authenticated_yt, track) -> list:
+def search_yt(authenticated_yt, track) -> list:
     results = authenticated_yt.search(track, filter="songs")
     return results
 
 
-def clear_track_name(name: str) -> str:
+def filter_yt(json_page: list) -> list[dict]:
+    filtered_list = []
+    for result in json_page:
+        filtered_list.append(
+            {
+                "track_name": result["title"],
+                "artist_name": result["artists"][0],
+                "duration (s)": result["duration_seconds"],
+            }
+        )
+    return filtered_list
 
+def clear_track_name(name: str) -> str:
     name=name.strip()
     tags = r"\(.*?remix.*?\)|\(.*?lo-?fi.*?\)|\(.*?acoustic.*?\)|\(.*?radio\s+edit.*?\)|\(.*?version.*?\)|\(.*?live.*?\)|\(.*?remaster.*?\)|\(.*?extended.*?\)|\(.*?sped\s+up.*?\)|\(.*?slowed.*?\)|\(.*?reverb.*?\)"
     if re.search(tags, name):
