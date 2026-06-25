@@ -88,29 +88,36 @@ def search_youtube(authenticated_yt, track) -> list:
 
 def clear_track_name(name: str) -> str:
 
-    name.strip()
+    name=name.strip()
     tags = r"\(.*?remix.*?\)|\(.*?lo-?fi.*?\)|\(.*?acoustic.*?\)|\(.*?radio\s+edit.*?\)|\(.*?version.*?\)|\(.*?live.*?\)|\(.*?remaster.*?\)|\(.*?extended.*?\)|\(.*?sped\s+up.*?\)|\(.*?slowed.*?\)|\(.*?reverb.*?\)"
     if re.search(tags, name):
         junk_pattern = r"\(.*?\)|\[.*?\]"
         name = re.sub(junk_pattern, "", name)
     junk_words = ["official", "video", "audio", "lyric", "lyrics", "hd", "4k", "mv"]
     for junk_word in junk_words:
-        name.replace(junk_word, "")
+        name=name.replace(junk_word, "")
     return name
 
 
 def score(source_track: dict, target_track: list):
-    source_name, source_artist, source_duration = (
-        source_track["track_name"],
-        source_track["artist_name"],
-        source_track["duration"],
-    )
-    # source_name, source_artist, source_duration = source_track['track_name'], source_track['artist_name'], source_track['duration']
     for track in target_track:
-        title_score: int = fuzz.token_sort_ratio(source_name, track["track_name"])
-        artist_score: int = fuzz.token_sort_ratio(source_artist, track["artist_name"])
-        duration_score: int = fuzz.token_sort_ratio(source_duration, track["duration"])
-        yield (source_track, (title_score * 0.35 + artist_score * 0.5 + duration_score * 0.15), track)
+        track['track_name'] = clear_track_name(track["track_name"].lower())
+        source_track['track_name'] = clear_track_name(source_track["track_name"].lower())
+        
+        title_score: int = fuzz.token_sort_ratio(source_track["track_name"], track["track_name"])
+        artist_score: int = fuzz.token_sort_ratio(source_track["artist_name"].lower(), track["artist_name"].lower()) 
+        
+        if track['duration']==None:
+            total_score=title_score*0.51+artist_score*0.49
+        else:
+            difference= abs(source_track['duration']-track['duration'])
+            if 0 <= difference <= 5:
+                duration_score: int = 100-20*difference
+            else:
+                duration_score:int =0
+            total_score= title_score * 0.5 + artist_score * 0.35 + duration_score * 0.15
+        
+        yield (source_track, total_score, track)
 
 
 if __name__ == "__main__":
