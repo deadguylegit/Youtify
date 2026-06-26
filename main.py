@@ -5,20 +5,38 @@ from thefuzz import fuzz
 import ytmusicapi
 from dotenv import dotenv_values
 from spotipy.oauth2 import SpotifyOAuth
+import csv
 
 
 def main():
-    # spotify=authenticate_spotify()
-    # playlists=get_playlists(spotify)
-    # user_id=get_user_id(spotify)
+    spotify=authenticate_spotify()
+    playlists=get_playlists(spotify)
+    user_id=get_user_id(spotify)
     # tracks_list=get_tracks(spotify, '0UuAzJcX1PDq5BZtnnJgqg')
+    tracks_list=get_tracks(spotify, '0GLFBA6h4AfwOPCbcWQwKN')
+
+    for track in tracks_list[0]:
+        # print(track[0]['item'])
+        if track['item']['name'] == 'Tere Liye (Lofi Mix)':
+            # print(json.dumps(track, indent=2))
+            # print(f'{track['item']['name']} and {track['item']['artists'][0]['name']}')
+            with open('songs.csv', 'a', newline='') as file:
+                writer=csv.DictWriter(file, fieldnames=['track_name', 'artist_name', 'duration(s)'])
+                writer.writerow({'track_name': track['item']['name'], 'artist_name': track['item']['artists'][0]['name'], 'duration(s)': round(int(track['item']['duration_ms'])/1000)})
+
     # print(json.dumps(tracks_list, indent=2))
 
-    youtube = authenticate_yt()
-    
-    # print(json.dumps(yt_results, indent=2))
-    print(json.dumps(list, indent=2))
+    for playlist in playlists['items']:
+        if playlist['owner']['id'] == user_id:
+            print(json.dumps(playlist, indent=2))
+            
 
+    # youtube = authenticate_yt()
+    # results=clean_yt_results(search_yt(youtube, "Shape of You"))
+    # print(json.dumps(results, indent=2))    
+    # print(json.dumps(search_yt(youtube, "Shape of You"), indent=2))
+
+    ...
 
 def authenticate_spotify() -> spotipy.Spotify:
     config = dotenv_values(r"D:\code\py\Youtify\client.env")
@@ -60,6 +78,16 @@ def get_tracks(authenticated_spotify, playlist_id) -> list:
 
     return tracks
 
+def _get_tracks(authenticated_spotify, playlist_id) -> list:
+    tracks = []
+    offset = 0
+    
+    json_page = authenticated_spotify.playlist_items(
+        playlist_id, limit=10, offset=offset
+    )
+    tracks.append(json_page.get("items", []))
+
+    return tracks
 
 def authenticate_yt() -> ytmusicapi.YTMusic:
     youtube = ytmusicapi.YTMusic("browser.json")
@@ -77,7 +105,7 @@ def search_yt(authenticated_yt, track) -> list:
     return results
 
 
-def filter_yt(json_page: list) -> list[dict]:
+def clean_yt_results(json_page: list) -> list[dict]:
     filtered_list = []
     for result in json_page:
         filtered_list.append(
@@ -85,6 +113,7 @@ def filter_yt(json_page: list) -> list[dict]:
                 "track_name": result["title"],
                 "artist_name": result["artists"][0],
                 "duration (s)": result["duration_seconds"],
+                "id": result['videoId']
             }
         )
     return filtered_list
