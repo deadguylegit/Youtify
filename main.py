@@ -1,7 +1,7 @@
 import spotipy
 import json
 import re
-from thefuzz import fuzz
+from rapidfuzz import fuzz
 import ytmusicapi
 from dotenv import dotenv_values
 from spotipy.oauth2 import SpotifyOAuth
@@ -9,31 +9,23 @@ import csv
 
 
 def main():
-    spotify=authenticate_spotify()
-    playlists=get_playlists(spotify)
-    user_id=get_user_id(spotify)
-    # tracks_list=get_tracks(spotify, '0UuAzJcX1PDq5BZtnnJgqg')
-    tracks_list=get_tracks(spotify, '0GLFBA6h4AfwOPCbcWQwKN')
-
-    for track in tracks_list[0]:
-        # print(track[0]['item'])
-        if track['item']['name'] == 'Tere Liye (Lofi Mix)':
-            # print(json.dumps(track, indent=2))
-            # print(f'{track['item']['name']} and {track['item']['artists'][0]['name']}')
-            with open('songs.csv', 'a', newline='') as file:
-                writer=csv.DictWriter(file, fieldnames=['track_name', 'artist_name', 'duration(s)'])
-                writer.writerow({'track_name': track['item']['name'], 'artist_name': track['item']['artists'][0]['name'], 'duration(s)': round(int(track['item']['duration_ms'])/1000)})
+    # spotify=authenticate_spotify()
+    # playlists=get_playlists(spotify)
+    # user_id=get_user_id(spotify)
+    # # tracks_list=get_tracks(spotify, '0UuAzJcX1PDq5BZtnnJgqg')
+    # tracks_list=get_tracks(spotify, '0GLFBA6h4AfwOPCbcWQwKN')
+    # save_tracks(tracks_list, 'Tere Liye (Lofi Mix)')
 
     # print(json.dumps(tracks_list, indent=2))
 
-    for playlist in playlists['items']:
-        if playlist['owner']['id'] == user_id:
-            print(json.dumps(playlist, indent=2))
+    # for playlist in playlists['items']:
+    #     if playlist['owner']['id'] == user_id:
+    #         print(json.dumps(playlist, indent=2))
             
 
-    # youtube = authenticate_yt()
-    # results=clean_yt_results(search_yt(youtube, "Shape of You"))
-    # print(json.dumps(results, indent=2))    
+    youtube = authenticate_yt()
+    results=clean_yt_results(search_yt(youtube, "Shape of You"))
+    print(json.dumps(results, indent=2))    
     # print(json.dumps(search_yt(youtube, "Shape of You"), indent=2))
 
     ...
@@ -78,6 +70,18 @@ def get_tracks(authenticated_spotify, playlist_id) -> list:
 
     return tracks
 
+
+def save_spotify_tracks(tracks_list: list, track_name: str):
+    for track in tracks_list[0]:
+        # print(track[0]['item'])
+        if track['item']['name'] == track_name:
+            # print(json.dumps(track, indent=2))
+            # print(f'{track['item']['name']} and {track['item']['artists'][0]['name']}')
+            with open('spotify.csv', 'a', newline='') as file:
+                writer=csv.DictWriter(file, fieldnames=['track_name', 'artist_name', 'duration(s)'])
+                writer.writerow({'track_name': track['item']['name'], 'artist_name': track['item']['artists'][0]['name'], 'duration(s)': round(int(track['item']['duration_ms'])/1000)})
+
+
 def _get_tracks(authenticated_spotify, playlist_id) -> list:
     tracks = []
     offset = 0
@@ -103,6 +107,10 @@ def create_playlist(authenticated_yt):
 def search_yt(authenticated_yt, track) -> list:
     results = authenticated_yt.search(track, filter="songs")
     return results
+
+
+def save_youtube_tracks():
+    ...
 
 
 def clean_yt_results(json_page: list) -> list[dict]:
@@ -135,8 +143,8 @@ def score(source_track: dict, target_track: list):
         track['track_name'] = clear_track_name(track["track_name"].lower())
         source_track['track_name'] = clear_track_name(source_track["track_name"].lower())
         
-        title_score: int = fuzz.token_sort_ratio(source_track["track_name"], track["track_name"])
-        artist_score: int = fuzz.token_sort_ratio(source_track["artist_name"].lower(), track["artist_name"].lower()) 
+        title_score: int = round(fuzz.token_sort_ratio(source_track["track_name"], track["track_name"]))
+        artist_score: int = round(fuzz.token_sort_ratio(source_track["artist_name"].lower(), track["artist_name"].lower()))
         
         if track['duration']==None:
             total_score=title_score*0.51+artist_score*0.49
@@ -148,7 +156,7 @@ def score(source_track: dict, target_track: list):
                 duration_score:int =0
             total_score= title_score * 0.5 + artist_score * 0.35 + duration_score * 0.15
         
-        yield (source_track, total_score, track)
+        yield (total_score, track)    
 
 
 if __name__ == "__main__":
