@@ -25,10 +25,31 @@ def main():
 
     youtube = authenticate_yt()
     results=clean_yt_results(search_yt(youtube, "Shape of You"))
-    print(json.dumps(results, indent=2))    
+    # print(json.dumps(results, indent=2))    
     # print(json.dumps(search_yt(youtube, "Shape of You"), indent=2))
 
-    ...
+    list=[]
+    with open('spotify.csv', 'r') as file:
+        reader=csv.DictReader(file)
+        i=1
+        for row in reader:
+            print(f'{i}. {row['track_name']} by {row['artist_name']}.')
+            list.append(row)
+            i += 1
+    
+    choice = int(input("Which track to search?: "))
+    spotify_track={'track_name': list[choice-1]['track_name'], 'artist_name': list[choice-1]['artist_name'], 'duration': int(list[choice-1]['duration(s)'])}
+    yt_list=clean_yt_results(search_yt(youtube, spotify_track["track_name"]))
+    yt_list=score(spotify_track, yt_list)
+    print(json.dumps(yt_list, indent=2))
+    
+    
+    
+    
+    
+    
+    
+    ... 
 
 def authenticate_spotify() -> spotipy.Spotify:
     config = dotenv_values(r"D:\code\py\Youtify\client.env")
@@ -120,7 +141,7 @@ def clean_yt_results(json_page: list) -> list[dict]:
             {
                 "track_name": result["title"],
                 "artist_name": result["artists"][0],
-                "duration (s)": result["duration_seconds"],
+                "duration": result["duration_seconds"],
                 "id": result['videoId']
             }
         )
@@ -128,23 +149,30 @@ def clean_yt_results(json_page: list) -> list[dict]:
 
 def clear_track_name(name: str) -> str:
     name=name.strip()
-    tags = r"\(.*?remix.*?\)|\(.*?lo-?fi.*?\)|\(.*?acoustic.*?\)|\(.*?radio\s+edit.*?\)|\(.*?version.*?\)|\(.*?live.*?\)|\(.*?remaster.*?\)|\(.*?extended.*?\)|\(.*?sped\s+up.*?\)|\(.*?slowed.*?\)|\(.*?reverb.*?\)"
-    if re.search(tags, name):
-        junk_pattern = r"\(.*?\)|\[.*?\]"
-        name = re.sub(junk_pattern, "", name)
+    # if version==False:
+    #     junk_pattern = r"\(.*?\)|\[.*?\]"
+    #     name = re.sub(junk_pattern, "", name)
     junk_words = ["official", "video", "audio", "lyric", "lyrics", "hd", "4k", "mv"]
     for junk_word in junk_words:
         name=name.replace(junk_word, "")
     return name
 
 
+def is_version_mismatch(source_name: str, target_name: str) -> bool:
+    version_keywords = r"\(.*?remix.*?\)|\(.*?lo-?fi.*?\)|\(.*?acoustic.*?\)|\(.*?radio\s+edit.*?\)|\(.*?version.*?\)|\(.*?live.*?\)|\(.*?remaster.*?\)|\(.*?extended.*?\)|\(.*?sped\s+up.*?\)|\(.*?slowed.*?\)|\(.*?reverb.*?\)|\(.*?instrumental.*?\)|\(.*?feat.*?\)|\(.*?with.*?\)|remix|lo-?fi|acoustic|radio\s+edit|version|live|remaster|extended|sped\s+up|slowed|reverb|instrumental|feat|with"
+    return ((not bool(re.search(version_keywords, source_name, re.IGNORECASE))) and bool(re.search(version_keywords, target_name, re.IGNORECASE)))
+
+
 def score(source_track: dict, target_track: list):
     for track in target_track:
-        track['track_name'] = clear_track_name(track["track_name"].lower())
-        source_track['track_name'] = clear_track_name(source_track["track_name"].lower())
+        if is_version_mismatch(source_track['track_name'], track['track_name']):
+            print('skipping\n')
+            continue
+        track['track_name'] = clear_track_name((track["track_name"]).lower())
+        _source_name = clear_track_name(source_track["track_name"].lower())
         
-        title_score: int = round(fuzz.token_sort_ratio(source_track["track_name"], track["track_name"]))
-        artist_score: int = round(fuzz.token_sort_ratio(source_track["artist_name"].lower(), track["artist_name"].lower()))
+        title_score: int = round(fuzz.token_sort_ratio(_source_name, track["track_name"]))
+        artist_score: int = round(fuzz.token_sort_ratio((source_track["artist_name"]).lower(), (track["artist_name"]['name']).lower()))
         
         if track['duration']==None:
             total_score=title_score*0.51+artist_score*0.49
@@ -156,8 +184,8 @@ def score(source_track: dict, target_track: list):
                 duration_score:int =0
             total_score= title_score * 0.5 + artist_score * 0.35 + duration_score * 0.15
         
-        yield (total_score, track)    
-
+        track['score']=total_score
+    return target_track
 
 if __name__ == "__main__":
     main()
