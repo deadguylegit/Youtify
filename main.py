@@ -45,10 +45,111 @@ def main():
     yt_list = clean_yt_results(search_yt(youtube, spotify_track["track_name"]))
     # yt_list = (search_yt(youtube, "Shape of You"))
     yt_list = score(spotify_track, yt_list)
-    
+
     # yt_list=(search_yt(youtube, spotify_track["track_name"]))
     print(json.dumps(yt_list, indent=2))
 
+    sample_list=[
+  {
+    "track_name": "tere liye (lofi mix)",
+    "artist_name": {
+      "name": "Atif Aslam",
+      "id": "UCVGomUS__PL0c4jDXa0QwXA"
+    },
+    "duration": 207,
+    "id": "gDLm5tX7KLE",
+    "views": "9.9M",
+    "score": 97.0
+  },
+  {
+    "track_name": "tere liye (dance mix)",
+    "artist_name": {
+      "name": "Atif Aslam",
+      "id": "UCVGomUS__PL0c4jDXa0QwXA"
+    },
+    "duration": 245,
+    "id": "74-uy6xYgH8",
+    "views": "82M",
+    "score": 74.0
+  },
+  {
+    "track_name": "tere liye (hip hop mix)",
+    "artist_name": {
+      "name": "Sachin Gupta",
+      "id": "UCSXkFfQZF9mQQjddxxAVJwA"
+    },
+    "duration": 236,
+    "id": "mQVgXxI6lVA",
+    "views": "23M",
+    "score": 52.1
+  },
+  {
+    "track_name": "tere bin (lofi mix)",
+    "artist_name": {
+      "name": "Atif Aslam",
+      "id": "UCVGomUS__PL0c4jDXa0QwXA"
+    },
+    "duration": 227,
+    "id": "S2NL575xOwY",
+    "views": "769K",
+    "score": 78.5
+  },
+  {
+    "track_name": "tujhe bhula diya lofi mix (remix by kedrock & sd style)",
+    "artist_name": {
+      "name": "Mohit Chauhan",
+      "id": "UCPexK6Vq8vDGf_ldYFFbnIg"
+    },
+    "duration": 181,
+    "id": "CYBgGV7yUK4",
+    "views": "39M",
+    "score": 32.25
+  },
+  {
+    "track_name": "maine tere liye lofi mix",
+    "artist_name": {
+      "name": "Jammy Weirdo",
+      "id": "UCHKrnS8BinSMAlvs_EfUNvg"
+    },
+    "duration": 140,
+    "id": "Krfg9I9SDl4",
+    "views": "2K",
+    "score": 49.1
+  },
+  {
+    "track_name": "tere liye jaanam (lofi mix)",
+    "artist_name": {
+      "name": "Anand-Milind",
+      "id": "UCLd6G_1zNJfdJElVwhI5q9w"
+    },
+    "duration": 249,
+    "id": "AeWtSP5_vv0",
+    "views": "217K",
+    "score": 55.1
+  },
+  {
+    "track_name": "duniyaa lofi mix(remix by dj aqeel)",
+    "artist_name": {
+      "name": "Akhil",
+      "id": "UCSYa5_xCD-0iSwqeHjwx5Sw"
+    },
+    "duration": 202,
+    "id": "y1UdztH7Rs0",
+    "views": "13M",
+    "score": 32.45
+  },
+  {
+    "track_name": "darkhaast lofi mix (remix by dj yogii)",
+    "artist_name": {
+      "name": "Arijit Singh",
+      "id": "UCDxKh1gFWeYsqePvgVzmPoQ"
+    },
+    "duration": 335,
+    "id": "IyZCiGaL7s8",
+    "views": "1.9M",
+    "score": 26.45
+  }
+]
     ...
 
 
@@ -227,6 +328,43 @@ def score(source_track: dict, target_track: list):
         scored_track["score"] = total_score
         scored_tracks.append(scored_track)
     return scored_tracks
+
+
+def highest(list: list[dict], key: str):
+    highest_value=0
+    highest_list=[]
+
+    if len(list)==0:
+        return None
+    
+    for item in list:
+        if item[key]>highest_value:
+            highest_value=item[key]
+            highest_list=[item]
+        elif item[key]==highest_value:
+            highest_list.append(item)
+    return highest_list
+
+def threshold(track):
+    
+
+def match(highest_scorer_list):
+    if highest_scorer_list is None:
+        ...# error message
+    if len(highest_scorer_list)==0:
+        ...# error_log()
+    elif len(highest_scorer_list)==1:
+        return highest_scorer_list[0]['id']
+    elif len(highest_scorer_list)>1:
+        tie_breaker = highest(highest_scorer_list, 'views')
+        if tie_breaker==None:
+            ...
+        elif len(tie_breaker)==1: 
+            return match(tie_breaker)
+        elif len(tie_breaker)!=1:
+            return tie_breaker[0]['id']
+    
+
 
 
 if __name__ == "__main__":
