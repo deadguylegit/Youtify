@@ -345,24 +345,45 @@ def highest(list: list[dict], key: str):
             highest_list.append(item)
     return highest_list
 
-def threshold(track):
+
+def threshold(track: dict):
+    if track['score']>80:
+        return True
+    else:
+        return False
     
 
-def match(highest_scorer_list):
+def failure(source_track: dict, unmatched_track: dict):
+    return (False,{'source_track_name': source_track['track_name'],
+            'source_track_artist': source_track['artist_name'],
+            'unmatched_track_name': unmatched_track['track_name'],
+            'unmatched_track_artist': unmatched_track['artist_name'],
+            'best_score': unmatched_track['score']})
+    
+
+def match(highest_scorer_list: list[dict], source_track: dict):
+    highest_scorer: dict | None = resolve(highest_scorer_list)
+    if highest_scorer is None:
+        return None
+    if len(highest_scorer)==1:
+        if threshold(highest_scorer[0]):
+            return (True, highest_scorer[0]['id'])
+        else:
+            return failure(source_track, highest_scorer[0])
+
+
+def resolve(highest_scorer_list: list[dict] | None):
     if highest_scorer_list is None:
-        ...# error message
-    if len(highest_scorer_list)==0:
-        ...# error_log()
+        return None
     elif len(highest_scorer_list)==1:
-        return highest_scorer_list[0]['id']
+        return highest_scorer_list[0]  
     elif len(highest_scorer_list)>1:
         tie_breaker = highest(highest_scorer_list, 'views')
-        if tie_breaker==None:
-            ...
-        elif len(tie_breaker)==1: 
-            return match(tie_breaker)
-        elif len(tie_breaker)!=1:
-            return tie_breaker[0]['id']
+        assert tie_breaker is not None
+        if len(tie_breaker)==1: 
+            return tie_breaker[0]
+        if len(tie_breaker)!=1:
+            return tie_breaker[0]
     
 
 
