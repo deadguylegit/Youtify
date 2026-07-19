@@ -9,147 +9,41 @@ import csv
 
 
 def main():
-    # spotify=authenticate_spotify()
-    # playlists=get_playlists(spotify)
-    # user_id=get_user_id(spotify)
-    # # tracks_list=get_tracks(spotify, '0UuAzJcX1PDq5BZtnnJgqg')
-    # tracks_list=get_tracks(spotify, '0GLFBA6h4AfwOPCbcWQwKN')
-    # save_tracks(tracks_list, 'Tere Liye (Lofi Mix)')
-
-    # print(json.dumps(tracks_list, indent=2))
-
-    # for playlist in playlists['items']:
-    #     if playlist['owner']['id'] == user_id:
-    #         print(json.dumps(playlist, indent=2))
-
-    youtube = authenticate_yt()
-    results = clean_yt_results(search_yt(youtube, "Shape of You"))
+    spotify=authenticate_spotify()
+    playlists=get_playlists(spotify)
+    choice=ask_playlist(playlists)
+    playlist_id=get_playlist_id(choice, playlists)
+    tracks=get_tracks(spotify, playlist_id)
+    # print(json.dumps(tracks, indent=2))
+    for track in tracks:
+        source_track=source_track_dict(track)
+        print(source_track)
+    # youtube = authenticate_yt()
+    # results = clean_yt_results(search_yt(youtube, "Shape of You"))
     # print(json.dumps(results, indent=2))
     # print(json.dumps(search_yt(youtube, "Shape of You"), indent=2))
 
-    list = []
-    with open("spotify.csv", "r") as file:
-        reader = csv.DictReader(file)
-        i = 1
-        for row in reader:
-            print(f"{i}. {row['track_name']} by {row['artist_name']}.")
-            list.append(row)
-            i += 1
-
-    choice = int(input("Which track to search? : "))
-    spotify_track = {
-        "track_name": list[choice - 1]["track_name"],
-        "artist_name": list[choice - 1]["artist_name"],
-        "duration": int(list[choice - 1]["duration(s)"]),
-    }
-    yt_list = clean_yt_results(search_yt(youtube, spotify_track["track_name"]))
+    # yt_list = clean_yt_results(search_yt(youtube, spotify_track["track_name"]))
     # yt_list = (search_yt(youtube, "Shape of You"))
-    yt_list = score(spotify_track, yt_list)
+    # yt_list = score(spotify_track, yt_list)
 
     # yt_list=(search_yt(youtube, spotify_track["track_name"]))
-    print(json.dumps(yt_list, indent=2))
+    # print(json.dumps(yt_list, indent=2))
+    # print(match(highest(sample_list, 'score'),spotify_track))
+    # list = []
+    # with open("spotify.csv", "r") as file:
+    #     reader = csv.DictReader(file)
+    #     i = 1
+    #     for row in reader:
+    #         print(f"{i}. {row['track_name']} by {row['artist_name']}.")
+    #         list.append(row)
+    #         i += 1
 
-    sample_list=[
-  {
-    "track_name": "tere liye (lofi mix)",
-    "artist_name": {
-      "name": "Atif Aslam",
-      "id": "UCVGomUS__PL0c4jDXa0QwXA"
-    },
-    "duration": 207,
-    "id": "gDLm5tX7KLE",
-    "views": "9.9M",
-    "score": 97.0
-  },
-  {
-    "track_name": "tere liye (dance mix)",
-    "artist_name": {
-      "name": "Atif Aslam",
-      "id": "UCVGomUS__PL0c4jDXa0QwXA"
-    },
-    "duration": 245,
-    "id": "74-uy6xYgH8",
-    "views": "82M",
-    "score": 74.0
-  },
-  {
-    "track_name": "tere liye (hip hop mix)",
-    "artist_name": {
-      "name": "Sachin Gupta",
-      "id": "UCSXkFfQZF9mQQjddxxAVJwA"
-    },
-    "duration": 236,
-    "id": "mQVgXxI6lVA",
-    "views": "23M",
-    "score": 52.1
-  },
-  {
-    "track_name": "tere bin (lofi mix)",
-    "artist_name": {
-      "name": "Atif Aslam",
-      "id": "UCVGomUS__PL0c4jDXa0QwXA"
-    },
-    "duration": 227,
-    "id": "S2NL575xOwY",
-    "views": "769K",
-    "score": 78.5
-  },
-  {
-    "track_name": "tujhe bhula diya lofi mix (remix by kedrock & sd style)",
-    "artist_name": {
-      "name": "Mohit Chauhan",
-      "id": "UCPexK6Vq8vDGf_ldYFFbnIg"
-    },
-    "duration": 181,
-    "id": "CYBgGV7yUK4",
-    "views": "39M",
-    "score": 32.25
-  },
-  {
-    "track_name": "maine tere liye lofi mix",
-    "artist_name": {
-      "name": "Jammy Weirdo",
-      "id": "UCHKrnS8BinSMAlvs_EfUNvg"
-    },
-    "duration": 140,
-    "id": "Krfg9I9SDl4",
-    "views": "2K",
-    "score": 49.1
-  },
-  {
-    "track_name": "tere liye jaanam (lofi mix)",
-    "artist_name": {
-      "name": "Anand-Milind",
-      "id": "UCLd6G_1zNJfdJElVwhI5q9w"
-    },
-    "duration": 249,
-    "id": "AeWtSP5_vv0",
-    "views": "217K",
-    "score": 55.1
-  },
-  {
-    "track_name": "duniyaa lofi mix(remix by dj aqeel)",
-    "artist_name": {
-      "name": "Akhil",
-      "id": "UCSYa5_xCD-0iSwqeHjwx5Sw"
-    },
-    "duration": 202,
-    "id": "y1UdztH7Rs0",
-    "views": "13M",
-    "score": 32.45
-  },
-  {
-    "track_name": "darkhaast lofi mix (remix by dj yogii)",
-    "artist_name": {
-      "name": "Arijit Singh",
-      "id": "UCDxKh1gFWeYsqePvgVzmPoQ"
-    },
-    "duration": 335,
-    "id": "IyZCiGaL7s8",
-    "views": "1.9M",
-    "score": 26.45
-  }
-]
+    # spotify_track = {
+    #     "track_name": list[4]["track_name"],
+    #     "artist_name": list[4]["artist_name"],
+    #     "duration": int(list[4]["duration(s)"]),
+    # }
     ...
 
 
@@ -169,10 +63,25 @@ def authenticate_spotify() -> spotipy.Spotify:
     return auth_spotify
 
 
-def get_playlists(authenticated_spotify) -> dict:
+def get_playlists(authenticated_spotify: spotipy.Spotify):
     playlists = authenticated_spotify.current_user_playlists()
     return playlists
 
+
+def ask_playlist(playlists):
+    for index, playlist in enumerate(playlists['items']):
+        print(f'{index+1}. {playlist['name']} (owner: {playlist['owner']['display_name']})(tracks: {playlist['items']['total']})')
+        ...
+    while True:
+        try:
+            return int(input('Which playlist to migrate: '))
+        except ValueError:
+            pass
+
+
+def get_playlist_id(choice: int, playlists) -> str:
+    return playlists['items'][choice-1]['id']
+    
 
 def get_user_id(authenticated_spotify) -> str:
     user_id = authenticated_spotify.current_user()["id"]
@@ -194,23 +103,14 @@ def get_tracks(authenticated_spotify, playlist_id) -> list:
     return tracks
 
 
-def save_spotify_tracks(tracks_list: list, track_name: str):
-    for track in tracks_list[0]:
-        # print(track[0]['item'])
-        if track["item"]["name"] == track_name:
-            # print(json.dumps(track, indent=2))
-            # print(f'{track['item']['name']} and {track['item']['artists'][0]['name']}')
-            with open("spotify.csv", "a", newline="") as file:
-                writer = csv.DictWriter(
-                    file, fieldnames=["track_name", "artist_name", "duration(s)"]
-                )
-                writer.writerow(
-                    {
-                        "track_name": track["item"]["name"],
-                        "artist_name": track["item"]["artists"][0]["name"],
-                        "duration(s)": round(int(track["item"]["duration_ms"]) / 1000),
+def source_track_dict(track: list):
+    for item in track:
+            return        {
+                        "track_name": item["item"]["name"],
+                        "artist_name": item["item"]["artists"][0]["name"],
+                        "duration(s)": round(int(item["item"]["duration_ms"]) / 1000),
                     }
-                )
+
 
 
 def _get_tracks(authenticated_spotify, playlist_id) -> list:
@@ -230,7 +130,7 @@ def authenticate_yt() -> ytmusicapi.YTMusic:
     return youtube
 
 
-def create_playlist(authenticated_yt):
+def create_playlist(authenticated_yt: ytmusicapi.YTMusic):
     authenticated_yt.create_playlist(
         "zzz__TestPLaylist__delete_later", "Test playlist, delete later."
     )
@@ -353,23 +253,30 @@ def threshold(track: dict):
         return False
     
 
-def failure(source_track: dict, unmatched_track: dict):
-    return (False,{'source_track_name': source_track['track_name'],
-            'source_track_artist': source_track['artist_name'],
-            'unmatched_track_name': unmatched_track['track_name'],
-            'unmatched_track_artist': unmatched_track['artist_name'],
-            'best_score': unmatched_track['score']})
+def failure(source_track: dict, unmatched_track: dict | None):
+    if unmatched_track is None:
+        return (False,{'source_track_name': source_track['track_name'],
+                'source_track_artist': source_track['artist_name'],
+                'unmatched_track_name': None,
+                'unmatched_track_artist': None,
+                'best_score': None})
+    else:
+        return (False,{'source_track_name': source_track['track_name'],
+        'source_track_artist': source_track['artist_name'],
+        'unmatched_track_name': unmatched_track['track_name'],
+        'unmatched_track_artist': unmatched_track['artist_name'],
+        'best_score': unmatched_track['score']})
+
     
 
-def match(highest_scorer_list: list[dict], source_track: dict):
+def match(highest_scorer_list: list[dict] | None, source_track: dict):
     highest_scorer: dict | None = resolve(highest_scorer_list)
     if highest_scorer is None:
-        return None
-    if len(highest_scorer)==1:
-        if threshold(highest_scorer[0]):
-            return (True, highest_scorer[0]['id'])
-        else:
-            return failure(source_track, highest_scorer[0])
+        return failure(source_track, highest_scorer)
+    if threshold(highest_scorer):
+        return (True, highest_scorer['id'])
+    else:
+        return failure(source_track, highest_scorer)
 
 
 def resolve(highest_scorer_list: list[dict] | None):
@@ -380,10 +287,7 @@ def resolve(highest_scorer_list: list[dict] | None):
     elif len(highest_scorer_list)>1:
         tie_breaker = highest(highest_scorer_list, 'views')
         assert tie_breaker is not None
-        if len(tie_breaker)==1: 
-            return tie_breaker[0]
-        if len(tie_breaker)!=1:
-            return tie_breaker[0]
+        return tie_breaker[0]
     
 
 
