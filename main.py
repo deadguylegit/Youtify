@@ -9,42 +9,32 @@ import csv
 
 
 def main():
-    spotify=authenticate_spotify()
-    playlists=get_playlists(spotify)
-    choice=ask_playlist(playlists)
-    playlist_id=get_playlist_id(choice, playlists)
-    tracks=get_tracks(spotify, playlist_id)
-    # print(json.dumps(tracks, indent=2))
+    spotify = authenticate_spotify()
+    playlists = get_playlists(spotify)
+    choice = ask_playlist(playlists)
+    spotify_playlist_name = get_playlist_name(choice, playlists)
+    spotify_playlist_id = get_playlist_id(choice, playlists)
+    tracks = get_tracks(spotify, spotify_playlist_id)
+
+    youtube = authenticate_yt()
+    yt_playlist_id = create_playlist(youtube, spotify_playlist_name)
+
+    failure_list = []
     for track in tracks:
-        source_track=source_track_dict(track)
-        print(source_track)
-    # youtube = authenticate_yt()
-    # results = clean_yt_results(search_yt(youtube, "Shape of You"))
-    # print(json.dumps(results, indent=2))
-    # print(json.dumps(search_yt(youtube, "Shape of You"), indent=2))
+        source_track = source_track_dict(track)
+        results = clean_yt_results(search_yt(youtube, source_track["track_name"]))
+        match_result = match(
+            highest(score(source_track, results), "score"), source_track
+        )
 
-    # yt_list = clean_yt_results(search_yt(youtube, spotify_track["track_name"]))
-    # yt_list = (search_yt(youtube, "Shape of You"))
-    # yt_list = score(spotify_track, yt_list)
-
-    # yt_list=(search_yt(youtube, spotify_track["track_name"]))
-    # print(json.dumps(yt_list, indent=2))
-    # print(match(highest(sample_list, 'score'),spotify_track))
-    # list = []
-    # with open("spotify.csv", "r") as file:
-    #     reader = csv.DictReader(file)
-    #     i = 1
-    #     for row in reader:
-    #         print(f"{i}. {row['track_name']} by {row['artist_name']}.")
-    #         list.append(row)
-    #         i += 1
-
-    # spotify_track = {
-    #     "track_name": list[4]["track_name"],
-    #     "artist_name": list[4]["artist_name"],
-    #     "duration": int(list[4]["duration(s)"]),
-    # }
-    ...
+        if match_result[0] == True:
+            add_track(youtube, yt_playlist_id, [match_result[1]])
+        elif match_result[0] == False:
+            failure_list.append(match_result[1])
+    for entry in failure_list:
+        print(
+            f"{entry['source_track_name']} - {entry['source_track_artist']} failed to match."
+        )
 
 
 def authenticate_spotify() -> spotipy.Spotify:
@@ -69,19 +59,24 @@ def get_playlists(authenticated_spotify: spotipy.Spotify):
 
 
 def ask_playlist(playlists):
-    for index, playlist in enumerate(playlists['items']):
-        print(f'{index+1}. {playlist['name']} (owner: {playlist['owner']['display_name']})(tracks: {playlist['items']['total']})')
-        ...
+    for index, playlist in enumerate(playlists["items"]):
+        print(
+            f"{index+1}. {playlist['name']} (owner: {playlist['owner']['display_name']})(tracks: {playlist['items']['total']})"
+        )
     while True:
         try:
-            return int(input('Which playlist to migrate: '))
+            return int(input("Which playlist to migrate: "))
         except ValueError:
             pass
 
 
 def get_playlist_id(choice: int, playlists) -> str:
-    return playlists['items'][choice-1]['id']
-    
+    return playlists["items"][choice - 1]["id"]
+
+
+def get_playlist_name(choice: int, playlists) -> str:
+    return playlists["items"][choice - 1]["name"]
+
 
 def get_user_id(authenticated_spotify) -> str:
     user_id = authenticated_spotify.current_user()["id"]
@@ -95,7 +90,8 @@ def get_tracks(authenticated_spotify, playlist_id) -> list:
         json_page = authenticated_spotify.playlist_items(
             playlist_id, limit=100, offset=offset
         )
-        tracks.append(json_page.get("items", []))
+        for item in json_page["items"]:
+            tracks.append(item)
         if json_page["next"] == None or json_page["next"] == "null":
             break
         offset += 100
@@ -103,26 +99,12 @@ def get_tracks(authenticated_spotify, playlist_id) -> list:
     return tracks
 
 
-def source_track_dict(track: list):
-    for item in track:
-            return        {
-                        "track_name": item["item"]["name"],
-                        "artist_name": item["item"]["artists"][0]["name"],
-                        "duration(s)": round(int(item["item"]["duration_ms"]) / 1000),
-                    }
-
-
-
-def _get_tracks(authenticated_spotify, playlist_id) -> list:
-    tracks = []
-    offset = 0
-
-    json_page = authenticated_spotify.playlist_items(
-        playlist_id, limit=10, offset=offset
-    )
-    tracks.append(json_page.get("items", []))
-
-    return tracks
+def source_track_dict(track: dict):
+    return {
+        "track_name": track["item"]["name"],
+        "artist_name": track["item"]["artists"][0]["name"],
+        "duration": round(int(track["item"]["duration_ms"]) / 1000),
+    }
 
 
 def authenticate_yt() -> ytmusicapi.YTMusic:
@@ -130,10 +112,8 @@ def authenticate_yt() -> ytmusicapi.YTMusic:
     return youtube
 
 
-def create_playlist(authenticated_yt: ytmusicapi.YTMusic):
-    authenticated_yt.create_playlist(
-        "zzz__TestPLaylist__delete_later", "Test playlist, delete later."
-    )
+def create_playlist(authenticated_yt: ytmusicapi.YTMusic, playlist_name):
+    return authenticated_yt.create_playlist(title=playlist_name, description="")
 
 
 def search_yt(authenticated_yt, track) -> list:
@@ -172,15 +152,35 @@ def clear_track_name(name: str) -> str:
 
 def extract_keywords(track_name: str) -> set[str]:
     KEYWORDS = [
-    "remix", "instrumental", "acapella", "reverb", "slowed", "sped up",
-    "nightcore", "extended", "radio edit", "live", "acoustic", "cover",
-    "remaster", "remastered", "clean", "band", "bonus track",
-    "demo", "edit", "mix", "version", r"lo-?fi",  r"radio\s+edit", r"sped\s+up"
-]
+        "remix",
+        "instrumental",
+        "acapella",
+        "reverb",
+        "slowed",
+        "sped up",
+        "nightcore",
+        "extended",
+        "radio edit",
+        "live",
+        "acoustic",
+        "cover",
+        "remaster",
+        "remastered",
+        "clean",
+        "band",
+        "bonus track",
+        "demo",
+        "edit",
+        "mix",
+        "version",
+        r"lo-?fi",
+        r"radio\s+edit",
+        r"sped\s+up",
+    ]
     name = track_name.lower()
     found = set()
     for keyword in KEYWORDS:
-        pattern = r'\b' + re.escape(keyword).replace(r'\ ', r'\s+') + r'\b'
+        pattern = r"\b" + re.escape(keyword).replace(r"\ ", r"\s+") + r"\b"
         if re.search(pattern, name):
             found.add(keyword)
     return found
@@ -200,8 +200,8 @@ def score(source_track: dict, target_track: list):
     for track in target_track:
         if is_keyword_mismatch(source_track["track_name"], track["track_name"]):
             continue
-        track["track_name"] = ((track["track_name"]).lower())
-        _source_name = (source_track["track_name"].lower())
+        track["track_name"] = (track["track_name"]).lower()
+        _source_name = source_track["track_name"].lower()
 
         title_score: int = round(
             fuzz.token_sort_ratio(_source_name, track["track_name"])
@@ -231,50 +231,59 @@ def score(source_track: dict, target_track: list):
 
 
 def highest(list: list[dict], key: str):
-    highest_value=0
-    highest_list=[]
+    highest_value = float("-inf")
+    highest_list = []
 
-    if len(list)==0:
+    if len(list) == 0:
         return None
-    
+
     for item in list:
-        if item[key]>highest_value:
-            highest_value=item[key]
-            highest_list=[item]
-        elif item[key]==highest_value:
+        if item[key] > highest_value:
+            highest_value = item[key]
+            highest_list = [item]
+        elif item[key] == highest_value:
             highest_list.append(item)
     return highest_list
 
 
 def threshold(track: dict):
-    if track['score']>80:
+    if track["score"] > 80:
         return True
     else:
         return False
-    
+
 
 def failure(source_track: dict, unmatched_track: dict | None):
     if unmatched_track is None:
-        return (False,{'source_track_name': source_track['track_name'],
-                'source_track_artist': source_track['artist_name'],
-                'unmatched_track_name': None,
-                'unmatched_track_artist': None,
-                'best_score': None})
+        return (
+            False,
+            {
+                "source_track_name": source_track["track_name"],
+                "source_track_artist": source_track["artist_name"],
+                "unmatched_track_name": None,
+                "unmatched_track_artist": None,
+                "best_score": None,
+            },
+        )
     else:
-        return (False,{'source_track_name': source_track['track_name'],
-        'source_track_artist': source_track['artist_name'],
-        'unmatched_track_name': unmatched_track['track_name'],
-        'unmatched_track_artist': unmatched_track['artist_name'],
-        'best_score': unmatched_track['score']})
+        return (
+            False,
+            {
+                "source_track_name": source_track["track_name"],
+                "source_track_artist": source_track["artist_name"],
+                "unmatched_track_name": unmatched_track["track_name"],
+                "unmatched_track_artist": unmatched_track["artist_name"],
+                "best_score": unmatched_track["score"],
+            },
+        )
 
-    
 
 def match(highest_scorer_list: list[dict] | None, source_track: dict):
     highest_scorer: dict | None = resolve(highest_scorer_list)
     if highest_scorer is None:
         return failure(source_track, highest_scorer)
     if threshold(highest_scorer):
-        return (True, highest_scorer['id'])
+        return (True, highest_scorer["id"])
     else:
         return failure(source_track, highest_scorer)
 
@@ -282,14 +291,16 @@ def match(highest_scorer_list: list[dict] | None, source_track: dict):
 def resolve(highest_scorer_list: list[dict] | None):
     if highest_scorer_list is None:
         return None
-    elif len(highest_scorer_list)==1:
-        return highest_scorer_list[0]  
-    elif len(highest_scorer_list)>1:
-        tie_breaker = highest(highest_scorer_list, 'views')
+    elif len(highest_scorer_list) == 1:
+        return highest_scorer_list[0]
+    elif len(highest_scorer_list) > 1:
+        tie_breaker = highest(highest_scorer_list, "views")
         assert tie_breaker is not None
         return tie_breaker[0]
-    
 
+
+def add_track(authenticated_youtube: ytmusicapi.YTMusic, playlist_id, track_id):
+    authenticated_youtube.add_playlist_items(playlist_id, track_id, duplicates=False)
 
 
 if __name__ == "__main__":
