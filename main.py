@@ -65,7 +65,9 @@ def ask_playlist(playlists):
         )
     while True:
         try:
-            return int(input("Which playlist to migrate: "))
+            choice=int(input("Which playlist to migrate: "))
+            if not choice>len(playlists['items']):
+                return choice
         except ValueError:
             pass
 
